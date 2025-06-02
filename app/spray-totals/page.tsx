@@ -56,7 +56,6 @@ interface SprayTotal {
 }
 
 export default function SprayTotalsPage() {
-  // const router = useRouter()
   const [sprayTotals, setSprayTotals] = useState<SprayTotal[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [selectedYear, setSelectedYear] = useState<string>('all')
@@ -65,7 +64,7 @@ export default function SprayTotalsPage() {
 
   useEffect(() => {
     fetchSprayTotals()
-  }, [selectedYear, selectedStatus, selectedType])
+  }, [selectedYear, selectedStatus, selectedType]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchSprayTotals = async () => {
     try {

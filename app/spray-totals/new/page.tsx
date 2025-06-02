@@ -10,6 +10,18 @@ interface User {
   id: string
   name: string
   number?: string
+  actorType?: {
+    name: string
+  }
+}
+
+interface Actor {
+  id: string
+  name: string
+  number?: string
+  actorType?: {
+    name: string
+  }
 }
 
 interface Community {
@@ -74,7 +86,7 @@ export default function NewSprayTotalPage() {
     if (notSprayed !== formData.structuresNotSprayed) {
       setFormData(prev => ({ ...prev, structuresNotSprayed: notSprayed }))
     }
-  }, [formData.structuresFound, formData.structuresSprayed])
+  }, [formData.structuresFound, formData.structuresSprayed, formData.structuresNotSprayed])
 
   const fetchInitialData = async () => {
     try {
@@ -88,8 +100,8 @@ export default function NewSprayTotalPage() {
       if (sprayersRes.ok) {
         const sprayersData = await sprayersRes.json()
         // Filter sprayers and brigade chiefs
-        setSprayers(sprayersData.filter((actor: any) => actor.actorType?.name === 'Sprayer'))
-        setBrigadeChiefs(sprayersData.filter((actor: any) => actor.actorType?.name === 'Brigade Chief'))
+        setSprayers(sprayersData.filter((actor: Actor) => actor.actorType?.name === 'Sprayer'))
+        setBrigadeChiefs(sprayersData.filter((actor: Actor) => actor.actorType?.name === 'Brigade Chief'))
       }
 
       if (communitiesRes.ok) {
@@ -99,7 +111,7 @@ export default function NewSprayTotalPage() {
 
       if (sprayConfigsRes.ok) {
         const sprayConfigsData = await sprayConfigsRes.json()
-        setSprayConfigurations(sprayConfigsData.filter((config: any) => config.isActive))
+        setSprayConfigurations(sprayConfigsData.filter((config: SprayConfiguration & { isActive: boolean }) => config.isActive))
       }
     } catch (error) {
       console.error('Error fetching initial data:', error)
