@@ -1,0 +1,326 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  name          String    @default("NO_NAME")
+  email         String    @unique(map: "user_email_idx")
+  password      String?
+  role          String    @default("user")
+  emailVerified DateTime? @db.Timestamp(6)
+  image         String?
+  address       Json?     @db.Json
+  paymentMethod String?
+  
+  isActive      Boolean   @default(true)
+  
+  // Actor-related fields
+  description   String?
+  number        String?     @unique // Optional unique number for the actor
+  actorType     ActorType?  @relation(fields: [actorTypeId], references: [id])
+  actorTypeId   String?
+  
+  // Relations for spray totals
+  createdSprayTotals      SprayTotals[] @relation("CreatedSprayTotals")
+  updatedSprayTotals      SprayTotals[] @relation("UpdatedSprayTotals")
+  deletedSprayTotals      SprayTotals[] @relation("DeletedSprayTotals")
+  
+  // Relations for spray totals - users can be assigned as sprayers or brigade chiefs
+  sprayerAssignments      SprayTotals[] @relation("SprayerRelation")
+  brigadeChiefAssignments SprayTotals[] @relation("BrigadeChiefRelation")
+  
+  // Relations for spray configurations
+  createdSprayConfigurations SprayConfiguration[] @relation("CreatedSprayConfigurations")
+  
+  // Audit fields
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+  
+  account       Account[]
+  session       Session[]
+  
+  @@index([isActive], name: "user_is_active_idx")
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "account_userId_user_id_fk")
+  @@id([provider, providerAccountId], map: "account_provider_providerAccountId_pk")
+}
+
+model Session {
+  sessionToken String   @id
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "session_userId_user_id_fk")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+model ActorType {
+  id     String  @id @default(uuid())
+  name   String  @unique
+  users  User[]
+  isActive Boolean @default(true)
+  @@map("actor_types")
+}
+
+
+model Province {
+  id                  String               @id @default(uuid())
+  name                String               @unique
+  code                String?              @unique // Optional province code
+  districts           District[]
+  provinceTargets     ProvinceTarget[]
+  sprayConfigurations SprayConfiguration[]
+
+  @@map("provinces")
+}
+
+model District {
+  id                  String               @id @default(uuid())
+  name                String
+  code                String?              // Optional district code
+  province            Province             @relation(fields: [provinceId], references: [id])
+  provinceId          String
+  localities          Locality[]
+  districtTargets     DistrictTarget[]
+  sprayConfigurations SprayConfiguration[]
+
+  @@unique([name, provinceId], name: "district_name_province_unique")
+  @@unique([code, provinceId], name: "district_code_province_unique")
+  @@map("districts")
+  @@index([provinceId], name: "district_province_id_idx")
+}
+
+model Locality {
+  id          String      @id @default(uuid())
+  name        String
+  district    District    @relation(fields: [districtId], references: [id])
+  districtId  String
+  communities Community[]
+
+  @@unique([name, districtId], name: "locality_name_district_unique")
+  @@map("localities")
+  @@index([districtId], name: "locality_district_id_idx")
+}
+
+model Community {
+  id          String        @id @default(uuid())
+  name        String
+  locality    Locality      @relation(fields: [localityId], references: [id])
+  localityId  String
+  sprayTotals SprayTotals[]
+
+  @@unique([name, localityId], name: "community_name_locality_unique")
+  @@map("communities")
+  @@index([localityId], name: "community_locality_id_idx")
+}
+
+model ProvinceTarget {
+  id         String   @id @default(uuid())
+  year       Int
+  provinceId String
+  province   Province @relation(fields: [provinceId], references: [id])
+  target     Int      @default(0)
+  
+  // Audit fields
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([year, provinceId], name: "province_target_year_province_unique")
+  @@map("province_targets")
+  @@index([year], name: "province_target_year_idx")
+  @@index([provinceId], name: "province_target_province_id_idx")
+}
+
+model DistrictTarget {
+  id         String   @id @default(uuid())
+  year       Int
+  districtId String
+  district   District @relation(fields: [districtId], references: [id])
+  target     Int      @default(0)
+  
+  // Audit fields
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([year, districtId], name: "district_target_year_district_unique")
+  @@map("district_targets")
+  @@index([year], name: "district_target_year_idx")
+  @@index([districtId], name: "district_target_district_id_idx")
+}
+
+model SprayConfiguration {
+  id                    String   @id @default(uuid())
+  year                  Int
+  provinceId            String?
+  province              Province? @relation(fields: [provinceId], references: [id])
+  districtId            String?
+  district              District? @relation(fields: [districtId], references: [id])
+  
+  // Configuration details
+  proposedSprayDays     Int      @default(0)
+  sprayTarget           Int      @default(0) // Target number of structures to spray
+  startDate             DateTime?
+  endDate               DateTime?
+  sprayRounds           Int      @default(1) // Number of spray rounds planned
+  daysBetweenRounds     Int      @default(0) // Days between spray rounds
+  
+  // Optional descriptive fields
+  description           String?
+  notes                 String?
+  isActive              Boolean  @default(true)
+  
+  // Relations
+  sprayTotals           SprayTotals[]
+  
+  // User tracking
+  createdBy             String
+  createdByUser         User     @relation("CreatedSprayConfigurations", fields: [createdBy], references: [id])
+  
+  // Audit fields
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@unique([year, provinceId, districtId], name: "spray_config_year_province_district_unique")
+  @@map("spray_configurations")
+  @@index([year], name: "spray_config_year_idx")
+  @@index([provinceId], name: "spray_config_province_id_idx")
+  @@index([districtId], name: "spray_config_district_id_idx")
+  @@index([isActive], name: "spray_config_is_active_idx")
+  @@index([startDate, endDate], name: "spray_config_date_range_idx")
+  @@index([createdBy], name: "spray_config_created_by_idx")
+}
+
+enum SprayType {
+  PRINCIPAL
+  SECUNDARIA
+}
+
+enum ReasonNotSprayed {
+  RECUSA
+  FECHADA
+  OUTRO
+}
+
+enum WallsType {
+  MATOPE
+  COLMO
+  CIMENTO
+}
+
+enum RoofsType {
+  CAPIM_PLASTICO
+  ZINCO
+}
+
+enum SprayStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model SprayTotals {
+  id                      String             @id @default(uuid())
+  
+  // User who created this record
+  createdBy               String
+  createdByUser           User               @relation("CreatedSprayTotals", fields: [createdBy], references: [id])
+  
+  // User who last updated this record (optional)
+  updatedBy               String?
+  updatedByUser           User?              @relation("UpdatedSprayTotals", fields: [updatedBy], references: [id])
+  
+  // User assignments (operational data)
+  sprayerId               String
+  sprayer                 User               @relation("SprayerRelation", fields: [sprayerId], references: [id])
+  brigadeChiefId          String
+  brigadeChief            User               @relation("BrigadeChiefRelation", fields: [brigadeChiefId], references: [id])
+  
+  // Location and configuration
+  communityId             String
+  community               Community          @relation(fields: [communityId], references: [id])
+  sprayConfigurationId    String?
+  sprayConfiguration      SprayConfiguration? @relation(fields: [sprayConfigurationId], references: [id])
+  
+  // Spray details
+  sprayType               SprayType
+  sprayDate               DateTime
+  sprayYear               Int
+  sprayRound              Int                @default(1) // Which round of spraying this is
+  sprayStatus             SprayStatus        @default(PLANNED)
+  insecticideUsed         String
+  
+  // Structure counts with validation
+  structuresFound         Int                @default(0)
+  structuresSprayed       Int                @default(0)
+  structuresNotSprayed    Int                @default(0)
+  compartmentsSprayed     Int                @default(0)
+  
+  // Additional details
+  reasonNotSprayed        ReasonNotSprayed?
+  wallsType               WallsType
+  roofsType               RoofsType
+  
+  // Population data
+  numberOfPersons         Int                @default(0)
+  childrenUnder5          Int                @default(0)
+  pregnantWomen           Int                @default(0)
+  
+  // Soft delete with user tracking
+  isDeleted               Boolean            @default(false)
+  deletedAt               DateTime?
+  deletedBy               String?
+  deletedByUser           User?              @relation("DeletedSprayTotals", fields: [deletedBy], references: [id])
+  
+  // Audit fields
+  createdAt               DateTime           @default(now())
+  updatedAt               DateTime           @updatedAt
+
+  @@map("spray_totals")
+  @@index([createdBy], name: "spray_totals_created_by_idx")
+  @@index([updatedBy], name: "spray_totals_updated_by_idx")
+  @@index([deletedBy], name: "spray_totals_deleted_by_idx")
+  @@index([sprayerId], name: "spray_totals_sprayer_id_idx")
+  @@index([brigadeChiefId], name: "spray_totals_brigade_chief_id_idx")
+  @@index([communityId], name: "spray_totals_community_id_idx")
+  @@index([sprayDate], name: "spray_totals_spray_date_idx")
+  @@index([sprayYear], name: "spray_totals_spray_year_idx")
+  @@index([sprayStatus], name: "spray_totals_spray_status_idx")
+  @@index([sprayRound], name: "spray_totals_spray_round_idx")
+  @@index([isDeleted], name: "spray_totals_is_deleted_idx")
+  @@index([sprayConfigurationId], name: "spray_totals_spray_config_id_idx")
+  @@index([sprayYear, communityId], name: "spray_totals_year_community_idx")
+  @@index([sprayYear, sprayStatus], name: "spray_totals_year_status_idx")
+  @@index([sprayYear, sprayRound], name: "spray_totals_year_round_idx")
+  @@index([createdBy, sprayYear], name: "spray_totals_created_by_year_idx")
+  @@index([createdBy, isDeleted], name: "spray_totals_created_by_deleted_idx")
+}
