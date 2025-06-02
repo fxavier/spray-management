@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ProtectedLayout } from '@/components/layout/protected-layout'
-import { Trash2, Edit, Plus, Settings, Search, Filter, CheckCircle, XCircle, Loader2, Calendar, MapPin } from 'lucide-react'
+import { Trash2, Edit, Plus, Settings, Search, CheckCircle, XCircle, Loader2, MapPin } from 'lucide-react'
 import Link from 'next/link'
 
 interface Province {
@@ -36,7 +36,7 @@ interface SprayConfiguration {
   updatedAt: string
 }
 
-export default function SprayConfigurationsPage() {
+function SprayConfigurationsPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [configurations, setConfigurations] = useState<SprayConfiguration[]>([])
@@ -432,5 +432,13 @@ export default function SprayConfigurationsPage() {
         </div>
       </div>
     </ProtectedLayout>
+  )
+}
+
+export default function SprayConfigurationsPage() {
+  return (
+    <Suspense fallback={<div>Carregando...</div>}>
+      <SprayConfigurationsPageContent />
+    </Suspense>
   )
 }

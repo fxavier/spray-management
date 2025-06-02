@@ -12,9 +12,20 @@ import {
   UpdateSprayTotalsInput,
 } from '@/domain/entities/spray'
 
+// Helper function to transform Prisma null values to undefined
+function transformSprayTotals(total: any): SprayTotals {
+  return {
+    ...total,
+    sprayConfigurationId: total.sprayConfigurationId || undefined,
+    reasonNotSprayed: total.reasonNotSprayed || undefined,
+    deletedAt: total.deletedAt || undefined,
+    deletedBy: total.deletedBy || undefined,
+  }
+}
+
 export class PrismaSprayConfigurationRepository implements SprayConfigurationRepository {
   async findAll(): Promise<SprayConfiguration[]> {
-    return await prisma.sprayConfiguration.findMany({
+    const configurations = await prisma.sprayConfiguration.findMany({
       include: {
         province: true,
         district: true,
@@ -24,20 +35,44 @@ export class PrismaSprayConfigurationRepository implements SprayConfigurationRep
         { createdAt: 'desc' },
       ],
     })
+    
+    return configurations.map(config => ({
+      ...config,
+      provinceId: config.provinceId || undefined,
+      districtId: config.districtId || undefined,
+      description: config.description || undefined,
+      notes: config.notes || undefined,
+      startDate: config.startDate || undefined,
+      endDate: config.endDate || undefined,
+      createdBy: config.createdBy || undefined,
+    }))
   }
 
   async findById(id: string): Promise<SprayConfiguration | null> {
-    return await prisma.sprayConfiguration.findUnique({
+    const config = await prisma.sprayConfiguration.findUnique({
       where: { id },
       include: {
         province: true,
         district: true,
       },
     })
+    
+    if (!config) return null
+    
+    return {
+      ...config,
+      provinceId: config.provinceId || undefined,
+      districtId: config.districtId || undefined,
+      description: config.description || undefined,
+      notes: config.notes || undefined,
+      startDate: config.startDate || undefined,
+      endDate: config.endDate || undefined,
+      createdBy: config.createdBy || undefined,
+    }
   }
 
   async findByYear(year: number): Promise<SprayConfiguration[]> {
-    return await prisma.sprayConfiguration.findMany({
+    const configurations = await prisma.sprayConfiguration.findMany({
       where: { year },
       include: {
         province: true,
@@ -47,10 +82,21 @@ export class PrismaSprayConfigurationRepository implements SprayConfigurationRep
         createdAt: 'desc',
       },
     })
+    
+    return configurations.map(config => ({
+      ...config,
+      provinceId: config.provinceId || undefined,
+      districtId: config.districtId || undefined,
+      description: config.description || undefined,
+      notes: config.notes || undefined,
+      startDate: config.startDate || undefined,
+      endDate: config.endDate || undefined,
+      createdBy: config.createdBy || undefined,
+    }))
   }
 
   async findByProvinceId(provinceId: string): Promise<SprayConfiguration[]> {
-    return await prisma.sprayConfiguration.findMany({
+    const configurations = await prisma.sprayConfiguration.findMany({
       where: { provinceId },
       include: {
         province: true,
@@ -61,6 +107,17 @@ export class PrismaSprayConfigurationRepository implements SprayConfigurationRep
         { createdAt: 'desc' },
       ],
     })
+    
+    return configurations.map(config => ({
+      ...config,
+      provinceId: config.provinceId || undefined,
+      districtId: config.districtId || undefined,
+      description: config.description || undefined,
+      notes: config.notes || undefined,
+      startDate: config.startDate || undefined,
+      endDate: config.endDate || undefined,
+      createdBy: config.createdBy || undefined,
+    }))
   }
 
   async create(input: CreateSprayConfigurationInput): Promise<SprayConfiguration> {
@@ -79,13 +136,24 @@ export class PrismaSprayConfigurationRepository implements SprayConfigurationRep
     if (input.description) data.description = input.description
     if (input.notes) data.notes = input.notes
 
-    return await prisma.sprayConfiguration.create({
+    const config = await prisma.sprayConfiguration.create({
       data,
       include: {
         province: true,
         district: true,
       },
     })
+    
+    return {
+      ...config,
+      provinceId: config.provinceId || undefined,
+      districtId: config.districtId || undefined,
+      description: config.description || undefined,
+      notes: config.notes || undefined,
+      startDate: config.startDate || undefined,
+      endDate: config.endDate || undefined,
+      createdBy: config.createdBy || undefined,
+    }
   }
 
   async update(input: UpdateSprayConfigurationInput): Promise<SprayConfiguration> {
@@ -103,7 +171,7 @@ export class PrismaSprayConfigurationRepository implements SprayConfigurationRep
     if (input.notes !== undefined) data.notes = input.notes
     if (input.isActive !== undefined) data.isActive = input.isActive
 
-    return await prisma.sprayConfiguration.update({
+    const config = await prisma.sprayConfiguration.update({
       where: { id: input.id },
       data,
       include: {
@@ -111,6 +179,17 @@ export class PrismaSprayConfigurationRepository implements SprayConfigurationRep
         district: true,
       },
     })
+    
+    return {
+      ...config,
+      provinceId: config.provinceId || undefined,
+      districtId: config.districtId || undefined,
+      description: config.description || undefined,
+      notes: config.notes || undefined,
+      startDate: config.startDate || undefined,
+      endDate: config.endDate || undefined,
+      createdBy: config.createdBy || undefined,
+    }
   }
 
   async delete(id: string): Promise<void> {
@@ -158,7 +237,7 @@ export class PrismaSprayTotalsRepository implements SprayTotalsRepository {
       }
     }
 
-    return await prisma.sprayTotals.findMany({
+    const totals = await prisma.sprayTotals.findMany({
       where,
       include: {
         sprayer: {
@@ -190,10 +269,12 @@ export class PrismaSprayTotalsRepository implements SprayTotalsRepository {
         sprayDate: 'desc',
       },
     })
+    
+    return totals.map(transformSprayTotals)
   }
 
   async findById(id: string): Promise<SprayTotals | null> {
-    return await prisma.sprayTotals.findUnique({
+    const total = await prisma.sprayTotals.findUnique({
       where: { id },
       include: {
         sprayer: {
@@ -222,10 +303,14 @@ export class PrismaSprayTotalsRepository implements SprayTotalsRepository {
         sprayConfiguration: true,
       },
     })
+    
+    if (!total) return null
+    
+    return transformSprayTotals(total)
   }
 
   async findBySprayerId(sprayerId: string): Promise<SprayTotals[]> {
-    return await prisma.sprayTotals.findMany({
+    const totals = await prisma.sprayTotals.findMany({
       where: {
         sprayerId,
         isDeleted: false,
@@ -260,10 +345,12 @@ export class PrismaSprayTotalsRepository implements SprayTotalsRepository {
         sprayDate: 'desc',
       },
     })
+    
+    return totals.map(transformSprayTotals)
   }
 
   async findByCommunityId(communityId: string): Promise<SprayTotals[]> {
-    return await prisma.sprayTotals.findMany({
+    const totals = await prisma.sprayTotals.findMany({
       where: {
         communityId,
         isDeleted: false,
@@ -298,6 +385,8 @@ export class PrismaSprayTotalsRepository implements SprayTotalsRepository {
         sprayDate: 'desc',
       },
     })
+    
+    return totals.map(transformSprayTotals)
   }
 
   async create(input: CreateSprayTotalsInput): Promise<SprayTotals> {
@@ -328,7 +417,7 @@ export class PrismaSprayTotalsRepository implements SprayTotalsRepository {
     if (input.sprayConfigurationId) data.sprayConfigurationId = input.sprayConfigurationId
     if (input.reasonNotSprayed) data.reasonNotSprayed = input.reasonNotSprayed
 
-    return await prisma.sprayTotals.create({
+    const total = await prisma.sprayTotals.create({
       data,
       include: {
         sprayer: {
@@ -357,6 +446,8 @@ export class PrismaSprayTotalsRepository implements SprayTotalsRepository {
         sprayConfiguration: true,
       },
     })
+    
+    return transformSprayTotals(total)
   }
 
   async update(input: UpdateSprayTotalsInput): Promise<SprayTotals> {
@@ -388,7 +479,7 @@ export class PrismaSprayTotalsRepository implements SprayTotalsRepository {
       data.structuresNotSprayed = input.structuresFound - input.structuresSprayed
     }
 
-    return await prisma.sprayTotals.update({
+    const total = await prisma.sprayTotals.update({
       where: { id: input.id },
       data,
       include: {
@@ -418,6 +509,8 @@ export class PrismaSprayTotalsRepository implements SprayTotalsRepository {
         sprayConfiguration: true,
       },
     })
+    
+    return transformSprayTotals(total)
   }
 
   async delete(id: string): Promise<void> {

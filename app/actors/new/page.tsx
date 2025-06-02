@@ -93,7 +93,7 @@ export default function NewActorPage() {
         const data = await response.json()
         setErrors({ submit: data.error || 'Erro ao criar actor' })
       }
-    } catch (error) {
+    } catch (_error) {
       setErrors({ submit: 'Erro ao conectar com o servidor' })
     } finally {
       setIsLoading(false)

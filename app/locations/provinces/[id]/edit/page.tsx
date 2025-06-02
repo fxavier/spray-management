@@ -32,7 +32,7 @@ export default function EditProvincePage({ params }: { params: { id: string } })
       } else {
         setErrors({ fetch: 'Erro ao carregar província' })
       }
-    } catch (error) {
+    } catch (_error) {
       setErrors({ fetch: 'Erro ao conectar com o servidor' })
     } finally {
       setIsFetching(false)
@@ -100,7 +100,7 @@ export default function EditProvincePage({ params }: { params: { id: string } })
           setErrors({ submit: data.error || 'Erro ao actualizar província' })
         }
       }
-    } catch (error) {
+    } catch (_error) {
       setErrors({ submit: 'Erro ao conectar com o servidor' })
     } finally {
       setIsLoading(false)

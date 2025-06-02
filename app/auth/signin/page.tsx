@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/lib/hooks/use-toast'
-import { translations } from '@/lib/constants/translations'
+// import { translations } from '@/lib/constants/translations'
 import { LogIn, UserPlus, Eye, EyeOff, Sparkles, Shield, Users, Lock, Mail, User, Briefcase, Hash } from 'lucide-react'
 import {
   Select,
@@ -94,7 +94,7 @@ export default function AuthPage() {
         })
         router.push('/dashboard')
       }
-    } catch (error) {
+    } catch (_error) {
       setErrors({ submit: 'Erro ao conectar com o servidor' })
     } finally {
       setIsLoading(false)
@@ -143,7 +143,7 @@ export default function AuthPage() {
           setErrors({ submit: data.error || 'Erro ao criar conta' })
         }
       }
-    } catch (error) {
+    } catch (_error) {
       setErrors({ submit: 'Erro ao conectar com o servidor' })
     } finally {
       setIsLoading(false)

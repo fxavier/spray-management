@@ -78,7 +78,7 @@ export default function EditSprayConfigurationPage({ params }: { params: { id: s
       } else {
         setErrors({ fetch: 'Erro ao carregar configuração' })
       }
-    } catch (error) {
+    } catch (_error) {
       setErrors({ fetch: 'Erro ao conectar com o servidor' })
     } finally {
       setIsFetching(false)
@@ -191,7 +191,7 @@ export default function EditSprayConfigurationPage({ params }: { params: { id: s
         const data = await response.json()
         setErrors({ submit: data.error || 'Erro ao actualizar configuração' })
       }
-    } catch (error) {
+    } catch (_error) {
       setErrors({ submit: 'Erro ao conectar com o servidor' })
     } finally {
       setIsLoading(false)

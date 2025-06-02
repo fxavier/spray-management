@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+// import { useRouter } from 'next/navigation'
 import { ProtectedLayout } from '@/components/layout/protected-layout'
-import { Plus, Edit, Trash2, Eye, Calendar, MapPin, Users, CheckCircle, XCircle, Activity, Sparkles, Filter, Search } from 'lucide-react'
+import { Plus, Edit, Trash2, Eye, Calendar, MapPin, Users, CheckCircle, XCircle, Activity, Sparkles, Filter } from 'lucide-react'
 import Link from 'next/link'
 import {
   Select,
@@ -56,7 +56,7 @@ interface SprayTotal {
 }
 
 export default function SprayTotalsPage() {
-  const router = useRouter()
+  // const router = useRouter()
   const [sprayTotals, setSprayTotals] = useState<SprayTotal[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [selectedYear, setSelectedYear] = useState<string>('all')
@@ -392,7 +392,7 @@ export default function SprayTotalsPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {sprayTotals.map((sprayTotal, index) => (
+                      {sprayTotals.map((sprayTotal, _index) => (
                         <tr key={sprayTotal.id} className="hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 transition-all duration-200 group">
                           <td className="px-6 py-6 whitespace-nowrap">
                             <div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ProtectedLayout } from '@/components/layout/protected-layout'
 import { Trash2, Edit, Plus, Users, Search, Filter, CheckCircle, XCircle, Loader2 } from 'lucide-react'
@@ -24,7 +24,7 @@ interface Actor {
   updatedAt: string
 }
 
-export default function ActorsPage() {
+function ActorsPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [actors, setActors] = useState<Actor[]>([])
@@ -385,5 +385,13 @@ export default function ActorsPage() {
         </div>
       </div>
     </ProtectedLayout>
+  )
+}
+
+export default function ActorsPage() {
+  return (
+    <Suspense fallback={<div>Carregando...</div>}>
+      <ActorsPageContent />
+    </Suspense>
   )
 }

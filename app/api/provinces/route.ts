@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { PrismaLocationRepository } from '@/infrastructure/repositories/prisma-location-repository'
-import { createProvinceSchema, type CreateProvinceInput } from '@/lib/validations/location-schemas'
+import { createProvinceSchema } from '@/lib/validations/location-schemas'
 
 const locationRepository = new PrismaLocationRepository()
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     if (!session) {

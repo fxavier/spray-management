@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ProtectedLayout } from '@/components/layout/protected-layout'
 import { 
@@ -48,7 +48,7 @@ interface Community {
 
 type LocationType = 'province' | 'district' | 'locality' | 'community'
 
-export default function LocationsPage() {
+function LocationsPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [provinces, setProvinces] = useState<Province[]>([])
@@ -61,7 +61,7 @@ export default function LocationsPage() {
   const [expandedDistricts, setExpandedDistricts] = useState<Set<string>>(new Set())
   const [expandedLocalities, setExpandedLocalities] = useState<Set<string>>(new Set())
   const [showSuccess, setShowSuccess] = useState(false)
-  const [activeTab, setActiveTab] = useState<LocationType>('province')
+  // const [activeTab, setActiveTab] = useState<LocationType>('province')
 
   useEffect(() => {
     // Check for success message
@@ -470,5 +470,13 @@ export default function LocationsPage() {
         </div>
       </div>
     </ProtectedLayout>
+  )
+}
+
+export default function LocationsPage() {
+  return (
+    <Suspense fallback={<div>Carregando...</div>}>
+      <LocationsPageContent />
+    </Suspense>
   )
 }

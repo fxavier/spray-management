@@ -1,6 +1,6 @@
 'use client'
 
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { ProtectedLayout } from '@/components/layout/protected-layout'
 import { ArrowLeft, Edit3, AlertCircle, Calendar, MapPin, Users, Activity, Sparkles, Home, Target, Droplets, Eye, Info, Clock, User } from 'lucide-react'
@@ -67,7 +67,7 @@ interface SprayTotal {
 
 export default function ViewSprayTotalPage() {
   const params = useParams()
-  const router = useRouter()
+  // const router = useRouter()
   const sprayTotalId = params.id as string
   
   const [isLoading, setIsLoading] = useState(true)

@@ -107,7 +107,7 @@ export default function NewDistrictPage() {
           setErrors({ submit: data.error || 'Erro ao criar distrito' })
         }
       }
-    } catch (error) {
+    } catch (_error) {
       setErrors({ submit: 'Erro ao conectar com o servidor' })
     } finally {
       setIsLoading(false)

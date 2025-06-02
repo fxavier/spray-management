@@ -14,7 +14,7 @@ import {
   Shield,
   User,
   Activity,
-  Database,
+  // Database,
 } from 'lucide-react'
 
 const navigationItems = [

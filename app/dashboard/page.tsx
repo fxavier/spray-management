@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, ReferenceLine, ComposedChart } from 'recharts'
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, ReferenceLine, ComposedChart, Bar, Line } from 'recharts'
 import { Calendar, Users, Target, TrendingUp, Activity, CheckCircle2, Home, AlertCircle, RefreshCw, Clock, MapPin, Sparkles } from 'lucide-react'
 import { ProtectedLayout } from '@/components/layout/protected-layout'
 import {

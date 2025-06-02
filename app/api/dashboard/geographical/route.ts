@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/infrastructure/prisma/client'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -15,7 +17,7 @@ export async function GET(request: NextRequest) {
 
     // Get geographical breakdown by province
     const provinceStats = await prisma.sprayTotals.groupBy({
-      by: ['community'],
+      by: ['communityId'],
       where: {
         sprayYear: year,
         isDeleted: false,
@@ -31,7 +33,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Get community details with geographical hierarchy
-    const communityIds = provinceStats.map(stat => stat.community)
+    const communityIds = provinceStats.map(stat => stat.communityId)
     const communities = await prisma.community.findMany({
       where: {
         id: {
@@ -91,7 +93,7 @@ export async function GET(request: NextRequest) {
     }> = {}
 
     provinceStats.forEach(stat => {
-      const community = communityMap[stat.community]
+      const community = communityMap[stat.communityId]
       if (!community?.locality?.district?.province) return
 
       const province = community.locality.district.province

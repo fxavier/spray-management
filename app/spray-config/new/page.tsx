@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { ProtectedLayout } from '@/components/layout/protected-layout'
-import { ArrowLeft, Save, AlertCircle, Settings, Calendar, MapPin, Target, Clock, FileText, Sparkles } from 'lucide-react'
+import { ArrowLeft, Save, AlertCircle, Settings, Calendar, MapPin, Target, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 
 interface Province {
