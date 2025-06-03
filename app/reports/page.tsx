@@ -212,7 +212,7 @@ export default function ReportsPage() {
   return (
     <ProtectedLayout>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-        <div className="max-w-7xl mx-auto p-6">
+        <div className="max-w-7xl mx-auto p-4 sm:p-6">
           {/* Enhanced Header */}
           <div className="mb-12">
             <div className="relative">
@@ -220,25 +220,25 @@ export default function ReportsPage() {
               <div className="absolute -inset-1 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 rounded-2xl blur-lg opacity-20 animate-pulse"></div>
               
               {/* Main header card */}
-              <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl p-8 border border-white/20 shadow-xl">
-                <div className="flex items-center justify-between">
+              <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 lg:p-8 border border-white/20 shadow-xl">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                   <div className="flex items-center">
                     <div className="relative">
                       <div className="absolute -inset-2 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl blur opacity-40"></div>
-                      <div className="relative bg-white p-3 rounded-xl shadow-lg">
-                        <FileText className="h-10 w-10 text-emerald-600" />
+                      <div className="relative bg-white p-2 sm:p-3 rounded-xl shadow-lg">
+                        <FileText className="h-6 w-6 sm:h-8 sm:w-8 lg:h-10 lg:w-10 text-emerald-600" />
                       </div>
                     </div>
-                    <div className="ml-8">
-                      <h1 className="text-5xl font-black bg-gradient-to-r from-slate-900 via-emerald-900 to-teal-900 bg-clip-text text-transparent">
+                    <div className="ml-4 sm:ml-6 lg:ml-8">
+                      <h1 className="text-2xl sm:text-3xl lg:text-5xl font-black bg-gradient-to-r from-slate-900 via-emerald-900 to-teal-900 bg-clip-text text-transparent">
                         Relatórios Inteligentes
                       </h1>
-                      <p className="mt-3 text-xl text-slate-600 font-medium">
+                      <p className="mt-1 sm:mt-2 lg:mt-3 text-sm sm:text-base lg:text-xl text-slate-600 font-medium">
                         Análise avançada e exportação de dados de pulverização
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-4">
+                  <div className="flex items-center gap-4">
                     <Button
                       onClick={generateReport}
                       disabled={isLoading}

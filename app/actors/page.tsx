@@ -278,7 +278,8 @@ function ActorsPageContent() {
             </div>
           </div>
           
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="hidden lg:block overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
@@ -381,6 +382,74 @@ function ActorsPageContent() {
                 )}
               </tbody>
             </table>
+          </div>
+          
+          {/* Mobile Card View */}
+          <div className="lg:hidden">
+            <div className="space-y-4 p-4">
+              {isLoading ? (
+                <div className="text-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto" />
+                  <p className="mt-2 text-gray-600">A carregar actores...</p>
+                </div>
+              ) : filteredActors.length === 0 ? (
+                <div className="text-center py-8">
+                  <Users className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-500">Nenhum actor encontrado</p>
+                  <p className="text-gray-400 text-sm mt-1">Tente ajustar os filtros ou adicione um novo actor</p>
+                </div>
+              ) : (
+                filteredActors.map((actor) => (
+                  <div key={actor.id} className="bg-gray-50 rounded-lg p-4 space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start space-x-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedActors.includes(actor.id)}
+                          onChange={() => toggleSelectActor(actor.id)}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1"
+                        />
+                        <div>
+                          <h3 className="font-medium text-gray-900">{actor.name}</h3>
+                          <p className="text-sm text-gray-500">#{actor.number}</p>
+                        </div>
+                      </div>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        actor.isActive
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {actor.isActive ? 'Activo' : 'Inactivo'}
+                      </span>
+                    </div>
+                    
+                    <div className="space-y-1 text-sm">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-500">Tipo:</span>
+                        <span className="font-medium text-gray-900">{actor.actorType?.name || 'N/A'}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-end space-x-2 pt-2 border-t border-gray-200">
+                      <Link
+                        href={`/actors/${actor.id}/edit`}
+                        className="inline-flex items-center px-3 py-1 text-sm font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200"
+                      >
+                        <Edit className="h-4 w-4 mr-1" />
+                        Editar
+                      </Link>
+                      <button
+                        onClick={() => handleDelete(actor.id)}
+                        className="inline-flex items-center px-3 py-1 text-sm font-medium text-red-700 bg-red-100 rounded-md hover:bg-red-200"
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Eliminar
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>

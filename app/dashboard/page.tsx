@@ -221,7 +221,7 @@ export default function DashboardPage() {
   return (
     <ProtectedLayout>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-        <div className="max-w-7xl mx-auto p-6">
+        <div className="max-w-7xl mx-auto p-4 sm:p-6">
           {/* Enhanced Header */}
           <div className="mb-12">
             <div className="relative">
@@ -229,25 +229,25 @@ export default function DashboardPage() {
               <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-2xl blur-lg opacity-20 animate-pulse"></div>
               
               {/* Main header card */}
-              <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl p-8 border border-white/20 shadow-xl">
-                <div className="flex items-center justify-between">
+              <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 lg:p-8 border border-white/20 shadow-xl">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                   <div className="flex items-center">
                     <div className="relative">
                       <div className="absolute -inset-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl blur opacity-40"></div>
-                      <div className="relative bg-white p-3 rounded-xl shadow-lg">
-                        <Activity className="h-10 w-10 text-blue-600" />
+                      <div className="relative bg-white p-2 sm:p-3 rounded-xl shadow-lg">
+                        <Activity className="h-6 w-6 sm:h-8 sm:w-8 lg:h-10 lg:w-10 text-blue-600" />
                       </div>
                     </div>
-                    <div className="ml-8">
-                      <h1 className="text-5xl font-black bg-gradient-to-r from-slate-900 via-blue-900 to-purple-900 bg-clip-text text-transparent">
+                    <div className="ml-4 sm:ml-6 lg:ml-8">
+                      <h1 className="text-2xl sm:text-3xl lg:text-5xl font-black bg-gradient-to-r from-slate-900 via-blue-900 to-purple-900 bg-clip-text text-transparent">
                         Dashboard Inteligente
                       </h1>
-                      <p className="mt-3 text-xl text-slate-600 font-medium">
+                      <p className="mt-1 sm:mt-2 lg:mt-3 text-sm sm:text-base lg:text-xl text-slate-600 font-medium">
                         Acompanhe o progresso da campanha de pulverização em tempo real
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-6">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
                     {/* Year Selector */}
                     <div className="text-right">
                       <label className="block text-sm font-semibold text-slate-700 mb-2">Ano</label>

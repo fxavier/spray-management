@@ -68,7 +68,11 @@ const roleLabels = {
   SPRAYER: 'Pulverizador',
 }
 
-export function AppSidebar() {
+interface AppSidebarProps {
+  onNavigate?: () => void
+}
+
+export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
   const { data: session } = useSession()
   const pathname = usePathname()
 
@@ -132,6 +136,7 @@ export function AppSidebar() {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={onNavigate}
                 className={`relative group flex flex-col gap-1 rounded-xl px-4 py-3 text-sm transition-all duration-200 ${
                   isActive
                     ? isSprayTotals

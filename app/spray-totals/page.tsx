@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-// import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
 import { ProtectedLayout } from '@/components/layout/protected-layout'
 import { Plus, Edit, Trash2, Eye, Calendar, MapPin, Users, CheckCircle, XCircle, Activity, Sparkles, Filter } from 'lucide-react'
 import Link from 'next/link'
@@ -18,12 +17,16 @@ interface SprayTotal {
   sprayDate: string
   sprayYear: number
   sprayRound: number
-  sprayStatus: string
-  sprayType: string
+  sprayType: 'PRINCIPAL' | 'SECUNDARIA'
+  sprayStatus: 'PLANNED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
   insecticideUsed: string
   structuresFound: number
   structuresSprayed: number
   structuresNotSprayed: number
+  compartmentsSprayed: number
+  reasonNotSprayed?: string
+  wallsType: string
+  roofsType: string
   numberOfPersons: number
   childrenUnder5: number
   pregnantWomen: number
@@ -41,10 +44,13 @@ interface SprayTotal {
     id: string
     name: string
     locality?: {
+      id: string
       name: string
       district?: {
+        id: string
         name: string
         province?: {
+          id: string
           name: string
         }
       }
@@ -55,7 +61,7 @@ interface SprayTotal {
   }
 }
 
-export default function SprayTotalsPage() {
+function SprayTotalsPageContent() {
   const [sprayTotals, setSprayTotals] = useState<SprayTotal[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [selectedYear, setSelectedYear] = useState<string>('all')
@@ -68,12 +74,13 @@ export default function SprayTotalsPage() {
 
   const fetchSprayTotals = async () => {
     try {
+      setIsLoading(true)
       const params = new URLSearchParams()
-      if (selectedYear && selectedYear !== 'all') params.append('year', selectedYear)
-      if (selectedStatus && selectedStatus !== 'all') params.append('status', selectedStatus)
-      if (selectedType && selectedType !== 'all') params.append('type', selectedType)
+      if (selectedYear !== 'all') params.append('year', selectedYear)
+      if (selectedStatus !== 'all') params.append('status', selectedStatus)
+      if (selectedType !== 'all') params.append('type', selectedType)
       
-      const response = await fetch(`/api/spray-totals?${params}`)
+      const response = await fetch(`/api/spray-totals${params.toString() ? `?${params.toString()}` : ''}`)
       if (response.ok) {
         const data = await response.json()
         setSprayTotals(data)
@@ -86,7 +93,7 @@ export default function SprayTotalsPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja deletar este registro?')) {
+    if (!confirm('Tem certeza que deseja eliminar este registro?')) {
       return
     }
 
@@ -94,9 +101,9 @@ export default function SprayTotalsPage() {
       const response = await fetch(`/api/spray-totals/${id}`, {
         method: 'DELETE',
       })
-
+      
       if (response.ok) {
-        await fetchSprayTotals()
+        setSprayTotals(sprayTotals.filter(st => st.id !== id))
       } else {
         const data = await response.json()
         alert(data.error || 'Erro ao deletar registro')
@@ -173,120 +180,79 @@ export default function SprayTotalsPage() {
   return (
     <ProtectedLayout>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-        <div className="max-w-7xl mx-auto p-6">
+        <div className="max-w-7xl mx-auto p-4 sm:p-6">
           {/* Enhanced Header */}
-          <div className="mb-12">
+          <div className="mb-8 sm:mb-12">
             <div className="relative">
-              {/* Background decoration */}
               <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-2xl blur-lg opacity-20 animate-pulse"></div>
               
-              {/* Main header card */}
-              <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl p-8 border border-white/20 shadow-xl">
-                <div className="flex items-center justify-between">
+              <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 lg:p-8 border border-white/20 shadow-xl">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                   <div className="flex items-center">
                     <div className="relative">
                       <div className="absolute -inset-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl blur opacity-40"></div>
-                      <div className="relative bg-white p-3 rounded-xl shadow-lg">
-                        <Activity className="h-10 w-10 text-blue-600" />
+                      <div className="relative bg-white p-2 sm:p-3 rounded-xl shadow-lg">
+                        <Activity className="h-6 w-6 sm:h-8 sm:w-8 lg:h-10 lg:w-10 text-blue-600" />
                       </div>
                     </div>
-                    <div className="ml-8">
-                      <h1 className="text-5xl font-black bg-gradient-to-r from-slate-900 via-blue-900 to-purple-900 bg-clip-text text-transparent">
-                        Registros de Pulverização
+                    <div className="ml-4 sm:ml-6 lg:ml-8">
+                      <h1 className="text-2xl sm:text-3xl lg:text-5xl font-black bg-gradient-to-r from-slate-900 via-blue-900 to-purple-900 bg-clip-text text-transparent">
+                        Registos de Pulverização
                       </h1>
-                      <p className="mt-3 text-xl text-slate-600 font-medium">
-                        Gestão inteligente dos registros de pulverização das comunidades
+                      <p className="mt-1 sm:mt-2 lg:mt-3 text-sm sm:text-base lg:text-xl text-slate-600 font-medium">
+                        Gestão inteligente de dados de pulverização
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-6">
-                    <div className="text-right">
-                      <div className="text-3xl font-bold text-blue-600">{sprayTotals.length}</div>
-                      <div className="text-sm text-slate-500 font-medium">Registros</div>
-                    </div>
+                  <div className="flex items-center gap-4">
                     <Link
                       href="/spray-totals/new"
-                      className="relative inline-flex items-center px-8 py-4 text-lg font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-4 focus:ring-blue-500/50 transition-all duration-200 shadow-xl hover:shadow-2xl transform hover:scale-105 group"
+                      className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 font-semibold text-sm sm:text-base"
                     >
-                      <Plus className="h-6 w-6 mr-3 group-hover:rotate-90 transition-transform duration-200" />
+                      <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                       Novo Registro
-                      <div className="absolute inset-0 rounded-xl bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-200"></div>
                     </Link>
-                    <Sparkles className="h-8 w-8 text-purple-500 animate-pulse" />
+                    <Sparkles className="h-6 w-6 sm:h-8 sm:w-8 text-purple-500 animate-pulse" />
                   </div>
                 </div>
 
-                {/* Summary Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8">
-                  <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-white/30">
-                    <div className="flex items-center">
-                      <div className="p-2 bg-green-500/20 rounded-lg">
-                        <CheckCircle className="h-6 w-6 text-green-600" />
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-2xl font-bold text-green-600">{totalStructuresSprayed.toLocaleString()}</div>
-                        <div className="text-sm text-slate-500">Estruturas Pulverizadas</div>
-                      </div>
-                    </div>
+                {/* Summary Stats */}
+                <div className="mt-6 pt-6 border-t border-slate-200 grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="text-center">
+                    <p className="text-xs sm:text-sm text-slate-600">Total Registros</p>
+                    <p className="text-xl sm:text-2xl font-bold text-slate-900">{sprayTotals.length}</p>
                   </div>
-
-                  <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-white/30">
-                    <div className="flex items-center">
-                      <div className="p-2 bg-blue-500/20 rounded-lg">
-                        <Activity className="h-6 w-6 text-blue-600" />
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-2xl font-bold text-blue-600">{coveragePercentage.toFixed(1)}%</div>
-                        <div className="text-sm text-slate-500">Taxa de Cobertura</div>
-                      </div>
-                    </div>
+                  <div className="text-center">
+                    <p className="text-xs sm:text-sm text-slate-600">Estruturas Pulverizadas</p>
+                    <p className="text-xl sm:text-2xl font-bold text-green-600">{totalStructuresSprayed.toLocaleString()}</p>
                   </div>
-
-                  <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-white/30">
-                    <div className="flex items-center">
-                      <div className="p-2 bg-purple-500/20 rounded-lg">
-                        <Users className="h-6 w-6 text-purple-600" />
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-2xl font-bold text-purple-600">{completedRecords}</div>
-                        <div className="text-sm text-slate-500">Registros Completos</div>
-                      </div>
-                    </div>
+                  <div className="text-center">
+                    <p className="text-xs sm:text-sm text-slate-600">Taxa de Cobertura</p>
+                    <p className="text-xl sm:text-2xl font-bold text-blue-600">{coveragePercentage.toFixed(1)}%</p>
                   </div>
-
-                  <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-white/30">
-                    <div className="flex items-center">
-                      <div className="p-2 bg-orange-500/20 rounded-lg">
-                        <MapPin className="h-6 w-6 text-orange-600" />
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-2xl font-bold text-orange-600">
-                          {Array.from(new Set(sprayTotals.map(st => st.community.id))).length}
-                        </div>
-                        <div className="text-sm text-slate-500">Comunidades</div>
-                      </div>
-                    </div>
+                  <div className="text-center">
+                    <p className="text-xs sm:text-sm text-slate-600">Completos</p>
+                    <p className="text-xl sm:text-2xl font-bold text-purple-600">{completedRecords}</p>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Enhanced Filters */}
-          <div className="relative mb-8">
-            <div className="absolute -inset-1 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl blur opacity-20"></div>
-            <div className="relative bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
-              <div className="flex items-center mb-6">
+          {/* Filters */}
+          <div className="mb-8">
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-slate-200 shadow-lg">
+              <div className="flex items-center mb-4">
                 <div className="relative">
                   <div className="absolute -inset-1 bg-gradient-to-r from-green-500 to-teal-500 rounded-lg blur opacity-30"></div>
                   <div className="relative bg-white p-2 rounded-lg">
-                    <Filter className="h-5 w-5 text-green-600" />
+                    <Filter className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
                   </div>
                 </div>
-                <h3 className="ml-4 text-xl font-bold text-slate-800">Filtros Inteligentes</h3>
+                <h3 className="ml-3 sm:ml-4 text-lg sm:text-xl font-bold text-slate-800">Filtros Inteligentes</h3>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
                 <div className="group">
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Ano</label>
                   <Select value={selectedYear} onValueChange={setSelectedYear}>
@@ -337,7 +303,7 @@ export default function SprayTotalsPage() {
             </div>
           </div>
 
-          {/* Enhanced Table */}
+          {/* Table */}
           <div className="relative">
             <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur opacity-20"></div>
             <div className="relative bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 overflow-hidden">
@@ -366,130 +332,219 @@ export default function SprayTotalsPage() {
                   </Link>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full">
-                    <thead className="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
-                      <tr>
-                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
-                          Data / Local
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
-                          Equipe
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
-                          Tipo / Status
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
-                          Estruturas
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
-                          População
-                        </th>
-                        <th className="px-6 py-4 text-right text-xs font-bold text-slate-700 uppercase tracking-wider">
-                          Ações
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {sprayTotals.map((sprayTotal, _index) => (
-                        <tr key={sprayTotal.id} className="hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 transition-all duration-200 group">
-                          <td className="px-6 py-6 whitespace-nowrap">
-                            <div>
-                              <div className="text-sm font-bold text-slate-900">
-                                {new Date(sprayTotal.sprayDate).toLocaleDateString('pt-BR')}
-                              </div>
-                              <div className="text-sm text-slate-600 flex items-center mt-1">
-                                <MapPin className="h-3 w-3 mr-1 text-slate-400" />
-                                {sprayTotal.community.name}
-                                {sprayTotal.community.locality && (
-                                  <span className="text-slate-500">, {sprayTotal.community.locality.name}</span>
-                                )}
-                              </div>
-                              <div className="text-xs text-slate-500 mt-1 font-medium">
-                                Ronda {sprayTotal.sprayRound} • {sprayTotal.insecticideUsed}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-6 whitespace-nowrap">
-                            <div className="text-sm">
-                              <div className="font-bold text-slate-900 flex items-center">
-                                <Users className="h-3 w-3 mr-2 text-blue-500" />
-                                {sprayTotal.sprayer.name}
-                              </div>
-                              <div className="text-slate-600 mt-1">
-                                Chefe: {sprayTotal.brigadeChief.name}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-6 whitespace-nowrap">
-                            <div className="space-y-2">
-                              {getTypeBadge(sprayTotal.sprayType)}
-                              {getStatusBadge(sprayTotal.sprayStatus)}
-                            </div>
-                          </td>
-                          <td className="px-6 py-6 whitespace-nowrap">
-                            <div className="text-sm space-y-1">
-                              <div className="flex items-center">
-                                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                                <span className="font-bold text-slate-900">{sprayTotal.structuresSprayed}</span>
-                                <span className="text-slate-500 ml-1">pulverizadas</span>
-                              </div>
-                              <div className="flex items-center">
-                                <XCircle className="h-4 w-4 text-red-500 mr-2" />
-                                <span className="font-bold text-slate-900">{sprayTotal.structuresNotSprayed}</span>
-                                <span className="text-slate-500 ml-1">não pulverizadas</span>
-                              </div>
-                              <div className="text-xs text-slate-500 font-medium">
-                                Total: {sprayTotal.structuresFound}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-6 whitespace-nowrap">
-                            <div className="text-sm">
-                              <div className="font-bold text-slate-900">Pessoas: {sprayTotal.numberOfPersons || 0}</div>
-                              <div className="text-xs text-slate-600 mt-1">
-                                Crianças &lt;5: {sprayTotal.childrenUnder5 || 0}
-                              </div>
-                              <div className="text-xs text-slate-600">
-                                Grávidas: {sprayTotal.pregnantWomen || 0}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-6 whitespace-nowrap text-right">
-                            <div className="flex items-center justify-end space-x-3">
-                              <Link
-                                href={`/spray-totals/${sprayTotal.id}`}
-                                className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 group-hover:scale-110"
-                                title="Ver detalhes"
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Link>
-                              <Link
-                                href={`/spray-totals/${sprayTotal.id}/edit`}
-                                className="p-2 text-slate-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 group-hover:scale-110"
-                                title="Editar"
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Link>
-                              <button
-                                onClick={() => handleDelete(sprayTotal.id)}
-                                className="p-2 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group-hover:scale-110"
-                                title="Deletar"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                            </div>
-                          </td>
+                <>
+                  {/* Desktop Table View */}
+                  <div className="hidden lg:block overflow-x-auto">
+                    <table className="min-w-full">
+                      <thead className="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
+                        <tr>
+                          <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
+                            Data / Local
+                          </th>
+                          <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
+                            Equipe
+                          </th>
+                          <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
+                            Tipo / Status
+                          </th>
+                          <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
+                            Estruturas
+                          </th>
+                          <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
+                            População
+                          </th>
+                          <th className="px-6 py-4 text-right text-xs font-bold text-slate-700 uppercase tracking-wider">
+                            Ações
+                          </th>
                         </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {sprayTotals.map((sprayTotal) => (
+                          <tr key={sprayTotal.id} className="hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 transition-all duration-200 group">
+                            <td className="px-6 py-6 whitespace-nowrap">
+                              <div>
+                                <div className="text-sm font-bold text-slate-900">
+                                  {new Date(sprayTotal.sprayDate).toLocaleDateString('pt-BR')}
+                                </div>
+                                <div className="text-sm text-slate-600 flex items-center mt-1">
+                                  <MapPin className="h-3 w-3 mr-1 text-slate-400" />
+                                  {sprayTotal.community.name}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-6 whitespace-nowrap">
+                              <div className="text-sm">
+                                <div className="font-bold text-slate-900 flex items-center">
+                                  <Users className="h-3 w-3 mr-2 text-blue-500" />
+                                  {sprayTotal.sprayer.name}
+                                </div>
+                                <div className="text-slate-600 mt-1">
+                                  Chefe: {sprayTotal.brigadeChief.name}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-6 whitespace-nowrap">
+                              <div className="space-y-2">
+                                {getTypeBadge(sprayTotal.sprayType)}
+                                {getStatusBadge(sprayTotal.sprayStatus)}
+                              </div>
+                            </td>
+                            <td className="px-6 py-6 whitespace-nowrap">
+                              <div className="text-sm space-y-1">
+                                <div className="flex items-center">
+                                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                                  <span className="font-bold text-slate-900">{sprayTotal.structuresSprayed}</span>
+                                  <span className="text-slate-500 ml-1">pulverizadas</span>
+                                </div>
+                                <div className="flex items-center">
+                                  <XCircle className="h-4 w-4 text-red-500 mr-2" />
+                                  <span className="font-bold text-slate-900">{sprayTotal.structuresNotSprayed}</span>
+                                  <span className="text-slate-500 ml-1">não pulverizadas</span>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-6 whitespace-nowrap">
+                              <div className="text-sm">
+                                <div className="font-bold text-slate-900">
+                                  {sprayTotal.numberOfPersons.toLocaleString()}
+                                </div>
+                                <div className="text-slate-600">pessoas</div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-6 whitespace-nowrap text-right text-sm font-medium">
+                              <div className="flex items-center justify-end space-x-2">
+                                <Link
+                                  href={`/spray-totals/${sprayTotal.id}`}
+                                  className="text-blue-600 hover:text-blue-900 transition-colors"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Link>
+                                <Link
+                                  href={`/spray-totals/${sprayTotal.id}/edit`}
+                                  className="text-slate-600 hover:text-slate-900 transition-colors"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Link>
+                                <button
+                                  onClick={() => handleDelete(sprayTotal.id)}
+                                  className="text-red-600 hover:text-red-900 transition-colors"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  {/* Mobile Card View */}
+                  <div className="lg:hidden">
+                    <div className="space-y-4 p-4">
+                      {sprayTotals.map((sprayTotal) => (
+                        <div key={sprayTotal.id} className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl p-4 space-y-3 border border-slate-200 shadow-lg">
+                          {/* Header */}
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <p className="text-sm font-bold text-slate-900">
+                                {new Date(sprayTotal.sprayDate).toLocaleDateString('pt-BR')}
+                              </p>
+                              <p className="text-xs text-slate-600 mt-1">
+                                <MapPin className="inline h-3 w-3 mr-1" />
+                                {sprayTotal.community?.name || 'N/A'}
+                              </p>
+                            </div>
+                            <div className="flex flex-col items-end gap-1">
+                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                sprayTotal.sprayType === 'PRINCIPAL' 
+                                  ? 'bg-purple-100 text-purple-800' 
+                                  : 'bg-cyan-100 text-cyan-800'
+                              }`}>
+                                {sprayTotal.sprayType === 'PRINCIPAL' ? 'Principal' : 'Secundária'}
+                              </span>
+                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                sprayTotal.sprayStatus === 'COMPLETED' ? 'bg-green-100 text-green-800' :
+                                sprayTotal.sprayStatus === 'IN_PROGRESS' ? 'bg-yellow-100 text-yellow-800' :
+                                sprayTotal.sprayStatus === 'PLANNED' ? 'bg-blue-100 text-blue-800' :
+                                'bg-red-100 text-red-800'
+                              }`}>
+                                <span>
+                                  {sprayTotal.sprayStatus === 'COMPLETED' ? 'Completo' :
+                                   sprayTotal.sprayStatus === 'IN_PROGRESS' ? 'Em Progresso' :
+                                   sprayTotal.sprayStatus === 'PLANNED' ? 'Planeado' : 'Cancelado'}
+                                </span>
+                              </span>
+                            </div>
+                          </div>
+                          
+                          {/* Stats */}
+                          <div className="grid grid-cols-2 gap-3 text-sm">
+                            <div>
+                              <p className="text-slate-500">Estruturas</p>
+                              <p className="font-bold text-slate-900">
+                                {sprayTotal.structuresSprayed} / {sprayTotal.structuresFound}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-slate-500">População</p>
+                              <p className="font-bold text-slate-900">
+                                {sprayTotal.numberOfPersons.toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          {/* Team */}
+                          <div className="text-sm pt-2 border-t border-slate-200">
+                            <p className="text-slate-500">Equipe</p>
+                            <p className="font-medium text-slate-900">
+                              <Users className="inline h-3 w-3 mr-1" />
+                              {sprayTotal.sprayer?.name || 'N/A'}
+                            </p>
+                          </div>
+                          
+                          {/* Actions */}
+                          <div className="flex items-center justify-end gap-2 pt-2">
+                            <Link
+                              href={`/spray-totals/${sprayTotal.id}`}
+                              className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200"
+                            >
+                              <Eye className="h-3 w-3 mr-1" />
+                              Ver
+                            </Link>
+                            <Link
+                              href={`/spray-totals/${sprayTotal.id}/edit`}
+                              className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200"
+                            >
+                              <Edit className="h-3 w-3 mr-1" />
+                              Editar
+                            </Link>
+                            <button
+                              onClick={() => handleDelete(sprayTotal.id)}
+                              className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-red-700 bg-red-100 rounded-lg hover:bg-red-200"
+                            >
+                              <Trash2 className="h-3 w-3 mr-1" />
+                              Eliminar
+                            </button>
+                          </div>
+                        </div>
                       ))}
-                    </tbody>
-                  </table>
-                </div>
+                    </div>
+                  </div>
+                </>
               )}
             </div>
           </div>
         </div>
       </div>
     </ProtectedLayout>
+  )
+}
+
+export default function SprayTotalsPage() {
+  return (
+    <Suspense fallback={<div>Carregando...</div>}>
+      <SprayTotalsPageContent />
+    </Suspense>
   )
 }

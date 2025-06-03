@@ -102,7 +102,7 @@ export default function NewActorPage() {
 
   return (
     <ProtectedLayout>
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-4xl mx-auto p-4 sm:p-6">
         {/* Header */}
         <div className="mb-8">
           <Link 
@@ -121,7 +121,7 @@ export default function NewActorPage() {
 
         {/* Form Card */}
         <div className="bg-white shadow-lg rounded-lg">
-          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-6">
             {/* Error Alert */}
             {errors.submit && (
               <div className="bg-red-50 border border-red-200 rounded-md p-4 flex items-start">
